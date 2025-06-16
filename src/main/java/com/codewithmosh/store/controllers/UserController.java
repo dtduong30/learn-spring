@@ -1,18 +1,20 @@
 package com.codewithmosh.store.controllers;
 
 import com.codewithmosh.store.dtos.RegisterUserRequestDto;
+import com.codewithmosh.store.dtos.UpdateUserRequestDto;
 import com.codewithmosh.store.dtos.UserDto;
-import com.codewithmosh.store.entities.User;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @AllArgsConstructor
@@ -27,7 +29,7 @@ public class UserController {
         if (!Set.of("name", "email").contains(sort)) {
             sort = "name";
         }
-        return userRepository.findAll(Sort.by(sort))
+        return userRepository.findByDeletedAtIsNull(Sort.by(sort))
                 .stream()
                 .map(userMapper::toUserDto)
                 .toList();
@@ -35,7 +37,7 @@ public class UserController {
 
     @GetMapping("{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
-        var user = userRepository.findById(id).orElse(null);
+        var user = userRepository.findByIdAndDeletedAtIsNull(id).orElse(null);
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
@@ -53,5 +55,52 @@ public class UserController {
         var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
         // Xuat hien o header location
         return ResponseEntity.created(uri).body(userDto);
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserDto> updateUser(
+            @PathVariable(name= "userId") Long userId,
+            @RequestBody UpdateUserRequestDto request
+    ) {
+        var user = userRepository.findById(userId).orElse(null);
+        System.out.println("user: " + user);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+//        System.out.println("Request name: '" + request.getName() + "'");
+//        System.out.println("Request email: '" + request.getEmail() + "'");
+        userMapper.update(request, user);
+
+//        System.out.println("Request name is null: " + (request.getName() == null));
+//        System.out.println("Request name is empty: " + (request.getName() != null && request.getName().isEmpty()));
+        userRepository.save(user);
+        return ResponseEntity.ok(userMapper.toUserDto(user));
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable(name= "userId") Long userId
+    ) {
+        try {
+            if (userId == null || userId <= 0) {
+                return ResponseEntity.badRequest().build();
+            }
+            var user = userRepository.findById(userId).orElse(null);
+            System.out.println("user: " + user);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            user.setDeletedAt(LocalDateTime.now());
+            System.out.println("deleted at: " + user.getDeletedAt());
+            userRepository.save(user);
+            return ResponseEntity.noContent().build();
+        } catch (DataIntegrityViolationException e) {
+            System.err.println("Data integrity violation: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (Exception e) {
+            System.err.println("Error deleting user: " + e.getMessage());
+//            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
