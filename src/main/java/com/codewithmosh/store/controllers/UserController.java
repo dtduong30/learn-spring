@@ -11,12 +11,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -48,10 +47,16 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(
+    public ResponseEntity<?> createUser(
             @Valid @RequestBody RegisterUserRequestDto request,
             UriComponentsBuilder uriBuilder
     ) {
+        // Tự tạo bên repo
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().body(
+                    Map.of("email", "Email is already register")
+            );
+        }
         var user = userMapper.toUserEntity(request);
         userRepository.save(user);
         var userDto = userMapper.toUserDto(user);
