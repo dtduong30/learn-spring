@@ -48,7 +48,7 @@ public class CartController {
             @RequestBody AddItemToCartRequest request
     ) {
         try {
-            var cart = cartRepository.findById(cartId).orElse(null);
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
             if (cart == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -56,7 +56,7 @@ public class CartController {
             if (product == null) {
                 return ResponseEntity.badRequest().build();
             }
-            var cartItem = cart.getCartItems().stream()
+            var cartItem = cart.getItems().stream()
                     .filter(item -> item.getProduct().getId().equals(product.getId()))
                     .findFirst()
                     .orElse(null);
@@ -68,13 +68,29 @@ public class CartController {
                 cartItem.setProduct(product);
                 cartItem.setQuantity(1);
                 cartItem.setCart(cart);
-                cart.getCartItems().add(cartItem);
+                cart.getItems().add(cartItem);
             }
 
             cartRepository.save(cart);
             var cartItemDto = cartMapper.toEntity(cartItem);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(cartItemDto);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/{cartId}")
+    public ResponseEntity<CartDto> getCart(
+            @PathVariable UUID cartId
+    ) {
+        try {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.status(HttpStatus.CREATED).body(cartMapper.toDto(cart));
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return ResponseEntity.badRequest().build();
