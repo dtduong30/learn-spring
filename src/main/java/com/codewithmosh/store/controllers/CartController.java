@@ -59,21 +59,8 @@ public class CartController {
             if (product == null) {
                 return ResponseEntity.badRequest().build();
             }
-            var cartItem = cart.getItems().stream()
-                    .filter(item -> item.getProduct().getId().equals(product.getId()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (cartItem != null) {
-                cartItem.setQuantity(cartItem.getQuantity() + 1);
-            } else {
-                cartItem = new CartItem();
-                cartItem.setProduct(product);
-                cartItem.setQuantity(1);
-                cartItem.setCart(cart);
-                cart.getItems().add(cartItem);
-            }
-
+            // assign responsibility for cart object
+            var cartItem = cart.addItem(product);
             cartRepository.save(cart);
             var cartItemDto = cartMapper.toEntity(cartItem);
 
@@ -113,10 +100,7 @@ public class CartController {
                         Map.of("error", "Cart not found")
                 );
             }
-            var cartItem = cart.getItems().stream()
-                    .filter(item -> item.getProduct().getId().equals(productId))
-                    .findFirst()
-                    .orElse(null);
+            var cartItem = cart.getItem(productId);
 
             if (cartItem == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
@@ -128,6 +112,49 @@ public class CartController {
             cartRepository.save(cart);
 
             return ResponseEntity.ok(cartMapper.toEntity(cartItem));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/{cartId}/items/{productId}")
+    public ResponseEntity<?> removeItem(
+            @PathVariable("cartId") UUID cartId,
+            @PathVariable("productId") Long productId
+    ) {
+        try {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        Map.of("error", "Cart not found")
+                );
+            }
+            cart.removeItem(productId);
+            cartRepository.save(cart);
+
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // Clear items on cart, not delete a cart
+    @DeleteMapping("/{cartId}/items/")
+    public ResponseEntity<?> clearCart(
+            @PathVariable("cartId") UUID cartId
+    ) {
+        try {
+            var cart = cartRepository.getCartWithItems(cartId).orElse(null);
+            if (cart == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
+            cart.clear();
+            cartRepository.save(cart);
+
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return ResponseEntity.badRequest().build();
