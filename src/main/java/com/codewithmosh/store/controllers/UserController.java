@@ -5,6 +5,7 @@ import com.codewithmosh.store.dtos.UpdateUserRequestDto;
 import com.codewithmosh.store.dtos.UserDto;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,6 +22,7 @@ import java.util.Set;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/users")
+@Tag(name="Users")
 public class UserController {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
