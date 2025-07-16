@@ -3,6 +3,7 @@ package com.codewithmosh.store.controllers;
 import com.codewithmosh.store.dtos.RegisterUserRequestDto;
 import com.codewithmosh.store.dtos.UpdateUserRequestDto;
 import com.codewithmosh.store.dtos.UserDto;
+import com.codewithmosh.store.entities.Role;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -64,6 +65,7 @@ public class UserController {
         }
         var user = userMapper.toUserEntity(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
         userRepository.save(user);
         var userDto = userMapper.toUserDto(user);
         var uri = uriBuilder.path("/users/{id}").buildAndExpand(userDto.getId()).toUri();
