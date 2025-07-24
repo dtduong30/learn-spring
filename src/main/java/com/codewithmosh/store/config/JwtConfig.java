@@ -11,11 +11,11 @@ import javax.crypto.SecretKey;
 @ConfigurationProperties(prefix = "spring.jwt") // check application.yaml
 @Data
 public class JwtConfig {
-    private String secret;
-    private int accessTokenExpiration;
-    private int refreshTokenExpiration;
+  private String secret;
+  private int accessTokenExpiration;
+  private int refreshTokenExpiration;
 
-    public SecretKey getSecretKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
-    }
+  public SecretKey getSecretKey() {
+    return Keys.hmacShaKeyFor(secret.getBytes());
+  }
 }
