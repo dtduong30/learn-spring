@@ -32,21 +32,17 @@ public class JwtService {
         .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
         .build();
 
-    String token = Jwts.builder()
-        .claims(claims)
-        .signWith(jwtConfig.getSecretKey())
-        .compact();
-
-    return new JwtCustom(claims, jwtConfig.getSecretKey(), token);
+    return new JwtCustom(claims, jwtConfig.getSecretKey());
   }
 
   public JwtCustom parseToken(String token) {
     try {
       var claims = getClaims(token);
-      return new JwtCustom(claims, jwtConfig.getSecretKey(), token);
+      return new JwtCustom(claims, jwtConfig.getSecretKey());
     } catch (Exception e) {
       System.out.println("❌ Error parsing token: " + e.getClass().getSimpleName());
       System.out.println("❌ Message: " + e.getMessage());
+      System.out.println("❌ Token: " + token);
       return null;
     }
   }

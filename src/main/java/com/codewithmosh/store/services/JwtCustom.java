@@ -2,6 +2,7 @@ package com.codewithmosh.store.services;
 
 import com.codewithmosh.store.entities.Role;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -9,12 +10,10 @@ import java.util.Date;
 public class JwtCustom {
   private final Claims claims;
   private final SecretKey secretKey;
-  private final String token;
 
-  public JwtCustom(Claims claims, SecretKey secretKey, String token) {
+  public JwtCustom(Claims claims, SecretKey secretKey) {
     this.claims = claims;
     this.secretKey = secretKey;
-    this.token = token;
   }
 
   public boolean isExpired() {
@@ -29,13 +28,8 @@ public class JwtCustom {
   public Role getRole() {
     return Role.valueOf(claims.get("role", String.class));
   }
-
-  @Override
+  
   public String toString() {
-    return token;
+    return Jwts.builder().claims(claims).signWith(secretKey).compact();
   }
-
-//  public String toString() {
-//    return Jwts.builder().claims(claims).signWith(secretKey).compact();
-//  }
 }

@@ -6,6 +6,7 @@ import com.codewithmosh.store.dtos.LoginRequest;
 import com.codewithmosh.store.dtos.UserDto;
 import com.codewithmosh.store.mappers.UserMapper;
 import com.codewithmosh.store.repositories.UserRepository;
+import com.codewithmosh.store.services.AuthService;
 import com.codewithmosh.store.services.JwtService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @AllArgsConstructor
@@ -28,6 +28,7 @@ public class AuthController {
   private final JwtConfig jwtConfig;
   private final UserRepository userRepository;
   private final UserMapper userMapper;
+  private final AuthService authService;
 
   @PostMapping("/login")
   public ResponseEntity<JwtResponse> login(
@@ -72,9 +73,7 @@ public class AuthController {
 
   @GetMapping("/me")
   public ResponseEntity<UserDto> me() {
-    var authentication = SecurityContextHolder.getContext().getAuthentication();
-    var userId = (Long) authentication.getPrincipal();
-    var user = userRepository.findByIdAndDeletedAtIsNull(userId).orElse(null);
+    var user = authService.getCurrentUser();
     if (user == null) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }

@@ -1,7 +1,14 @@
 package com.codewithmosh.store.controllers;
 
 import com.codewithmosh.store.dtos.CheckoutRequest;
+import com.codewithmosh.store.dtos.CheckoutResponse;
+import com.codewithmosh.store.entities.Order;
+import com.codewithmosh.store.entities.OrderItem;
+import com.codewithmosh.store.entities.OrderStatus;
 import com.codewithmosh.store.repositories.CartRepository;
+import com.codewithmosh.store.repositories.OrderRepository;
+import com.codewithmosh.store.services.AuthService;
+import com.codewithmosh.store.services.CartService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +24,9 @@ import java.util.Map;
 @AllArgsConstructor
 public class CheckoutController {
   private final CartRepository cartRepository;
+  private final AuthService authService;
+  private final OrderRepository orderRepository;
+  private final CartService cartService;
 
   @PostMapping("")
   public ResponseEntity<?> checkout(@Valid @RequestBody CheckoutRequest request) {
@@ -26,8 +36,27 @@ public class CheckoutController {
     }
 
     if (cart.getItems().isEmpty()) {
-      return ResponseEntity.badRequest().body(Map.of("message", "Cart not found"));
+      return ResponseEntity.badRequest().body(Map.of("message", "Cart is empty"));
     }
-    return null;
+
+    var order = new Order();
+    order.setTotalPrice(cart.getTotalPrice());
+    order.setStatus(OrderStatus.PENDING);
+    order.setCustomer(authService.getCurrentUser());
+
+    cart.getItems().forEach(item -> {
+      var orderItem = new OrderItem();
+      orderItem.setOrder(order);
+      orderItem.setQuantity(item.getQuantity());
+      orderItem.setProduct(item.getProduct());
+      orderItem.setTotalPrice(item.getTotalPrice());
+      orderItem.setUnitPrice(item.getProduct().getPrice());
+      order.getItems().add(orderItem);
+    });
+
+    orderRepository.save(order);
+    cartService.clearCart(cart.getId());
+
+    return ResponseEntity.ok(new CheckoutResponse(order.getId()));
   }
 }

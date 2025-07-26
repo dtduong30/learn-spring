@@ -4,5 +4,9 @@ import lombok.Data;
 
 @Data
 public class CheckoutResponse {
-    private Long id;
+  private Long id;
+
+  public CheckoutResponse(Long orderId) {
+    this.id = orderId;
+  }
 }

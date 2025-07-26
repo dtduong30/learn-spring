@@ -1,11 +1,8 @@
 package com.codewithmosh.store.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,27 +14,27 @@ import java.util.Set;
 @Entity
 @Table(name = "orders")
 public class Order {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long id;
 
-    @ManyToOne()
-    @JoinColumn(name = "customer_id")
-    private User customer;
+  @ManyToOne()
+  @JoinColumn(name = "customer_id")
+  private User customer;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+  @Column(name = "status")
+  @Enumerated(EnumType.STRING)
+  private OrderStatus status;
 
 
-    @Column(name = "created_at", insertable = false, updatable = false)
-    private LocalDateTime createdAt;
+  @Column(name = "created_at", insertable = false, updatable = false)
+  private LocalDateTime createdAt;
 
-    @Column(name = "total_price")
-    private BigDecimal totalPrice;
+  @Column(name = "total_price")
+  private BigDecimal totalPrice;
 
-    @OneToMany(mappedBy = "order")
-    private Set<OrderItem> items = new LinkedHashSet<>();
+  @OneToMany(mappedBy = "order", cascade = CascadeType.PERSIST)
+  private Set<OrderItem> items = new LinkedHashSet<>();
 
 }
