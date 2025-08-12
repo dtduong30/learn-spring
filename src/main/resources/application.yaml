@@ -13,4 +13,4 @@ spring:
     refreshTokenExpiration: 604800
 stripe:
   secretKey: ${STRIPE_SECRET_KEY}
-website: ${WEBSITE_URL}
+websiteUrl: ${WEBSITE_URL}
