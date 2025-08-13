@@ -1,11 +1,12 @@
 package com.codewithmosh.store.controllers;
 
 import com.codewithmosh.store.dtos.CheckoutRequest;
+import com.codewithmosh.store.dtos.CheckoutResponse;
 import com.codewithmosh.store.dtos.ErrorDto;
 import com.codewithmosh.store.exceptions.CartEmptyException;
 import com.codewithmosh.store.exceptions.CartNotFoundException;
+import com.codewithmosh.store.exceptions.PaymentException;
 import com.codewithmosh.store.services.CheckoutService;
-import com.stripe.exception.StripeException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -21,18 +22,19 @@ public class CheckoutController {
 	
 	@SecurityRequirement(name = "bearerAuth")
 	@PostMapping("")
-	public ResponseEntity<?> checkout(@Valid @RequestBody CheckoutRequest request) {
-		try {
-			return ResponseEntity.ok(checkoutService.checkout(request));
-		} catch (StripeException e) {
-			return ResponseEntity
-					.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ErrorDto("Error creating a checkout session"));
-		}
+	public CheckoutResponse checkout(@Valid @RequestBody CheckoutRequest request) {
+		return checkoutService.checkout(request);
 	}
 	
 	@ExceptionHandler({CartNotFoundException.class, CartEmptyException.class})
 	public ResponseEntity<ErrorDto> handleCartException(RuntimeException e) {
 		return ResponseEntity.badRequest().body(new ErrorDto(e.getMessage()));
+	}
+	
+	@ExceptionHandler(PaymentException.class)
+	public ResponseEntity<?> handlePaymentException() {
+		return ResponseEntity
+				.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(new ErrorDto("Error creating a checkout session"));
 	}
 }
