@@ -4,9 +4,11 @@ import lombok.Data;
 
 @Data
 public class CheckoutResponse {
-  private Long id;
-
-  public CheckoutResponse(Long orderId) {
-    this.id = orderId;
-  }
+	private Long id;
+	private String checkoutUrl;
+	
+	public CheckoutResponse(Long orderId, String checkoutUrl) {
+		this.id = orderId;
+		this.checkoutUrl = checkoutUrl;
+	}
 }

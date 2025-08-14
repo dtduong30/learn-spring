@@ -4,9 +4,10 @@ This repository contains the starter project for Part 2 of my Spring Boot course
 
 [https://codewithmosh.com/p/spring-boot-building-apis](https://codewithmosh.com/p/spring-boot-building-apis)
 
-## About this Repository 
+## About this Repository
 
-This project is based on the final project from Part 1 of the course, but I’ve cleaned it up and removed unnecessary playground code so we can focus on building APIs in Part 2.
+This project is based on the final project from Part 1 of the course, but I’ve cleaned it up and removed unnecessary
+playground code so we can focus on building APIs in Part 2.
 
 You’ll be cloning this repository and coding along with me as we extend the project.
 
@@ -19,3 +20,10 @@ cd spring-api
 ```
 
 [API Doc swagger](http://localhost:8080/swagger-ui/index.html)
+
+Setup Stripe CLI and Testing webhook
+
+```sh
+stripe listen --forward-to localhost:8080/checkout/webhook
+stripe trigger payment_intent.succeeded --add "payment_intent:metadata[order_id]=2"
+```
